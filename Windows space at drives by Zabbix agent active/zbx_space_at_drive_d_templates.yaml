@@ -1,0 +1,99 @@
+zabbix_export:
+  version: '6.4'
+  template_groups:
+    -
+      uuid: 846977d1dfed4968bc5f8bdb363285bc
+      name: 'Templates/Operating systems'
+  templates:
+    -
+      uuid: 72a09653214c477ea2c732f2a870de96
+      template: 'Windows space at drive D by Zabbix agent active'
+      name: 'Windows space at drive D by Zabbix agent active'
+      groups:
+        -
+          name: 'Templates/Operating systems'
+      items:
+        -
+          uuid: 706fe894b0354b968fa5b559e622e194
+          name: 'D: Available space'
+          type: CALCULATED
+          key: drive.d.available_space
+          delay: 5m
+          history: 7d
+          units: B
+          params: 'last(//vfs.fs.size[D:,total])-last(//vfs.fs.size[D:,used])'
+          tags:
+            -
+              tag: component
+              value: storage
+            -
+              tag: filesystem
+              value: D
+          triggers:
+            -
+              uuid: 4e6623f1ddce43ed8a394508d5329d66
+              expression: 'last(/Windows space at drive D by Zabbix agent active/drive.d.available_space)<{$MIN_FREE_SPACE}'
+              recovery_mode: RECOVERY_EXPRESSION
+              recovery_expression: 'last(/Windows space at drive D by Zabbix agent active/drive.d.available_space)>{$MIN_FREE_SPACE_RECOVERY}'
+              name: 'Lack of free space at drive D:'
+              priority: WARNING
+        -
+          uuid: 1e2f3dfed9784aa4827bf4adeb7b8d9f
+          name: 'D: Total space'
+          type: ZABBIX_ACTIVE
+          key: 'vfs.fs.size[D:,total]'
+          delay: 5m
+          history: 7d
+          units: B
+          tags:
+            -
+              tag: component
+              value: storage
+            -
+              tag: filesystem
+              value: D
+        -
+          uuid: ad95a8566fc44abf9e1c2be1dfa55d0e
+          name: 'D: Used space'
+          type: ZABBIX_ACTIVE
+          key: 'vfs.fs.size[D:,used]'
+          delay: 5m
+          history: 7d
+          units: B
+          tags:
+            -
+              tag: component
+              value: storage
+            -
+              tag: filesystem
+              value: D
+      macros:
+        -
+          macro: '{$MIN_FREE_SPACE}'
+          value: 20G
+        -
+          macro: '{$MIN_FREE_SPACE_RECOVERY}'
+          value: 25G
+  graphs:
+    -
+      uuid: 22b54c3c527c4faf97c2d26f519e9206
+      name: 'Free space at drive D:'
+      ymin_type_1: FIXED
+      ymax_type_1: ITEM
+      ymax_item_1:
+        host: 'Windows space at drive D by Zabbix agent active'
+        key: 'vfs.fs.size[D:,total]'
+      graph_items:
+        -
+          color: 1A7C11
+          calc_fnc: ALL
+          item:
+            host: 'Windows space at drive D by Zabbix agent active'
+            key: drive.d.available_space
+        -
+          sortorder: '1'
+          color: '274482'
+          calc_fnc: ALL
+          item:
+            host: 'Windows space at drive D by Zabbix agent active'
+            key: 'vfs.fs.size[D:,total]'

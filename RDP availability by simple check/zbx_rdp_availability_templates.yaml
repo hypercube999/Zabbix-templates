@@ -1,0 +1,50 @@
+zabbix_export:
+  version: '6.4'
+  template_groups:
+    -
+      uuid: 7df96b18c230490a9a0a9e2307226338
+      name: Templates
+  templates:
+    -
+      uuid: ce0bcd2824e1467ea5616f3b98be0d66
+      template: 'RDP availability'
+      name: 'RDP availability'
+      groups:
+        -
+          name: Templates
+      items:
+        -
+          uuid: 265865314d3345faa8d0f69d35e75614
+          name: 'RDP availability'
+          type: SIMPLE
+          key: 'net.tcp.service[tcp,,3389]'
+          trends: '0'
+          tags:
+            -
+              tag: component
+              value: health
+          triggers:
+            -
+              uuid: 1bbd3329cbaa47649fbac016f1204e66
+              expression: 'max(/RDP availability/net.tcp.service[tcp,,3389],{$RDP.TIMEOUT})=0'
+              name: 'Last 5 RDP check failed'
+              priority: WARNING
+      tags:
+        -
+          tag: component
+          value: health
+      macros:
+        -
+          macro: '{$RDP.TIMEOUT}'
+          value: 5m
+  graphs:
+    -
+      uuid: 20b95daff7584cf19bbe866b13211094
+      name: 'RDP availability'
+      graph_items:
+        -
+          color: 1A7C11
+          calc_fnc: ALL
+          item:
+            host: 'RDP availability'
+            key: 'net.tcp.service[tcp,,3389]'

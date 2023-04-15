@@ -1,0 +1,36 @@
+zabbix_export:
+  version: '6.4'
+  template_groups:
+    -
+      uuid: 7df96b18c230490a9a0a9e2307226338
+      name: Templates
+  templates:
+    -
+      uuid: ba43f9ebac4e4cbcb1312aa4d53b3e78
+      template: 'System time sync by Zabbix agent active'
+      name: 'System time sync by Zabbix agent active'
+      groups:
+        -
+          name: Templates
+      items:
+        -
+          uuid: 3b6ac62c122f46d293d9cb2701e34343
+          name: 'System time'
+          type: ZABBIX_ACTIVE
+          key: system.localtime
+          history: 7d
+          units: unixtime
+          tags:
+            -
+              tag: component
+              value: system
+          triggers:
+            -
+              uuid: 89427aaf8c834ca9813b568c0cbe4ee4
+              expression: 'fuzzytime(/System time sync by Zabbix agent active/system.localtime,{$SYSTEM.FUZZYTIME.MAX})=0'
+              name: 'System time is out of sync'
+              manual_close: 'YES'
+      macros:
+        -
+          macro: '{$SYSTEM.FUZZYTIME.MAX}'
+          value: 3m

@@ -1,0 +1,375 @@
+zabbix_export:
+  version: '6.4'
+  template_groups:
+    -
+      uuid: 7df96b18c230490a9a0a9e2307226338
+      name: Templates
+  templates:
+    -
+      uuid: 2995f3a7adbb492ab05460ab2088635f
+      template: 'MegaRAID by SNMP'
+      name: 'MegaRAID by SNMP'
+      groups:
+        -
+          name: Templates
+      items:
+        -
+          uuid: b7a6b098d18549cbbca16afc33b61fb3
+          name: 'SNMP agent availability'
+          type: INTERNAL
+          key: 'zabbix[host,snmp,available]'
+          tags:
+            -
+              tag: component
+              value: health
+          triggers:
+            -
+              uuid: a70e8fb1ece54cd19910b1882d7504ca
+              expression: 'max(/MegaRAID by SNMP/zabbix[host,snmp,available],{$SNMP.TIMEOUT})=0'
+              name: 'No SNMP data collection'
+              priority: WARNING
+      discovery_rules:
+        -
+          uuid: 162f8b5e19b54b7fb4247aa3a8cbca05
+          name: 'MegaRAID Adapters discovery'
+          type: SNMP_AGENT
+          snmp_oid: 'discovery[{#SNMPVALUE},LSI-MegaRAID-SAS-MIB::adapterID]'
+          key: adapterID
+          delay: '900'
+          item_prototypes:
+            -
+              uuid: cde7d9340c8349c4a1c8e9e7bae03879
+              name: 'Raid controller temperature on adapter {#SNMPVALUE}'
+              type: SNMP_AGENT
+              snmp_oid: 'LSI-MegaRAID-SAS-MIB::temperatureCtrl.{#SNMPINDEX}'
+              key: 'temperatureCtrl[{#SNMPVALUE}]'
+              delay: '60'
+              history: 30d
+              units: °C
+              description: 'temperature of controller in Celsius'
+            -
+              uuid: 89daa94c59684f18881216490fc73beb
+              name: 'Raid On Chip temperature on adapter {#SNMPVALUE}'
+              type: SNMP_AGENT
+              snmp_oid: 'LSI-MegaRAID-SAS-MIB::temperatureROC.{#SNMPINDEX}'
+              key: 'temperatureROC[{#SNMPVALUE}]'
+              delay: '60'
+              history: 30d
+              units: °C
+              description: 'temperature of RAID On Chip in Celsius'
+              trigger_prototypes:
+                -
+                  uuid: a981f35ffcbf4ec3915cc859ca012ec3
+                  expression: 'last(/MegaRAID by SNMP/temperatureROC[{#SNMPVALUE}])>115'
+                  recovery_mode: RECOVERY_EXPRESSION
+                  recovery_expression: 'last(/MegaRAID by SNMP/temperatureROC[{#SNMPVALUE}])<105'
+                  name: 'Critical temperature on Raid on Chip for adapter {#SNMPVALUE}'
+                  priority: HIGH
+                -
+                  uuid: db33899d04594522af08c9edf8e226c9
+                  expression: 'last(/MegaRAID by SNMP/temperatureROC[{#SNMPVALUE}])>90'
+                  recovery_mode: RECOVERY_EXPRESSION
+                  recovery_expression: 'last(/MegaRAID by SNMP/temperatureROC[{#SNMPVALUE}])<80'
+                  name: 'High temperature on Raid on Chip for adapter {#SNMPVALUE}'
+                  priority: AVERAGE
+          graph_prototypes:
+            -
+              uuid: cddb4bd752f24c069df7463e22864c18
+              name: 'Temperatures on raid adapter {#SNMPVALUE}'
+              graph_items:
+                -
+                  color: 0000FF
+                  item:
+                    host: 'MegaRAID by SNMP'
+                    key: 'temperatureCtrl[{#SNMPVALUE}]'
+                -
+                  sortorder: '1'
+                  color: FF00FF
+                  item:
+                    host: 'MegaRAID by SNMP'
+                    key: 'temperatureROC[{#SNMPVALUE}]'
+        -
+          uuid: 712d4e6fd1d745e9b8ab20cf90bbdef8
+          name: 'MegaRAID Physical drive discovery'
+          type: SNMP_AGENT
+          snmp_oid: 'discovery[{#PD_ID},LSI-MegaRAID-SAS-MIB::physDevID]'
+          key: physDevID
+          delay: '60'
+          item_prototypes:
+            -
+              uuid: 51283954041e436dbd2f5e3b781ccfce
+              name: 'Physical raid drive adapter port(s) to which it is connected {#PD_ID}'
+              type: SNMP_AGENT
+              snmp_oid: 'LSI-MegaRAID-SAS-MIB::connectedAdapterPort.{#SNMPINDEX}'
+              key: 'connectedAdapterPort[{#PD_ID}]'
+              delay: '60'
+              trends: '0'
+              value_type: TEXT
+              description: 'Adapter port(s) to which the device is connected.'
+              tags:
+                -
+                  tag: 'Physical raid drive'
+                  value: '{#PD_ID}'
+            -
+              uuid: 7cf6c61db6714c4ca3f3fe0176cffa3d
+              name: 'Physical raid drive media error count {#PD_ID}'
+              type: SNMP_AGENT
+              snmp_oid: 'LSI-MegaRAID-SAS-MIB::mediaErrCount.{#SNMPINDEX}'
+              key: 'mediaErrCount[{#PD_ID}]'
+              delay: '60'
+              description: 'Error count of the device'
+              tags:
+                -
+                  tag: 'Physical raid drive'
+                  value: '{#PD_ID}'
+            -
+              uuid: 1621086bc79b49d280e3d6bea1f51a00
+              name: 'Physical raid drive operation progress {#PD_ID}'
+              type: SNMP_AGENT
+              snmp_oid: 'LSI-MegaRAID-SAS-MIB::operationProgress.{#SNMPINDEX}'
+              key: 'operationProgress[{#PD_ID}]'
+              delay: '60'
+              trends: '0'
+              value_type: TEXT
+              description: 'Operation progress in %. e.g. Rebuild progress is 10%'
+              tags:
+                -
+                  tag: 'Physical raid drive'
+                  value: '{#PD_ID}'
+            -
+              uuid: 68060cd490324de28b9cefb77c16bdcc
+              name: 'Physical raid drive other error count {#PD_ID}'
+              type: SNMP_AGENT
+              snmp_oid: 'LSI-MegaRAID-SAS-MIB::otherErrCount.{#SNMPINDEX}'
+              key: 'otherErrCount[{#PD_ID}]'
+              delay: '60'
+              description: 'Error count of the device'
+              tags:
+                -
+                  tag: 'Physical raid drive'
+                  value: '{#PD_ID}'
+            -
+              uuid: b44adba217754014996b9e5388a11854
+              name: 'Physical raid drive model {#PD_ID}'
+              type: SNMP_AGENT
+              snmp_oid: 'LSI-MegaRAID-SAS-MIB::pdProductID.{#SNMPINDEX}'
+              key: 'pdProductID[{#SNMPVALUE}]'
+              delay: '60'
+              trends: '0'
+              value_type: CHAR
+              tags:
+                -
+                  tag: 'Physical raid drive'
+                  value: '{#PD_ID}'
+            -
+              uuid: cadff95a3f234fccae3ef6ffe8861e52
+              name: 'Physical raid drive serial {#PD_ID}'
+              type: SNMP_AGENT
+              snmp_oid: 'LSI-MegaRAID-SAS-MIB::pdSerialNumber.{#SNMPINDEX}'
+              key: 'pdSerialNumber[{#PD_ID}]'
+              delay: '60'
+              trends: '0'
+              value_type: CHAR
+              tags:
+                -
+                  tag: 'Physical raid drive'
+                  value: '{#PD_ID}'
+            -
+              uuid: cb6ab4710cee4235866fe0782e366d66
+              name: 'Physical raid drive state {#PD_ID}'
+              type: SNMP_AGENT
+              snmp_oid: 'LSI-MegaRAID-SAS-MIB::pdState.{#SNMPINDEX}'
+              key: 'pdState[{#PD_ID}]'
+              delay: '60'
+              description: |
+                Firmware's interpretation of drive state.
+                Values:unconfigured-good(0),unconfigured-bad(1),hot-spare(2),offline(16),failed(17),rebuild(20),online(24),copyback(32),system(64),UNCONFIGURED-SHIELDED(128),HOTSPARE-SHIELDED(130),CONFIGURED-SHIELDED(144)
+              valuemap:
+                name: 'Physical drive state'
+              tags:
+                -
+                  tag: 'Physical raid drive'
+                  value: '{#PD_ID}'
+              trigger_prototypes:
+                -
+                  uuid: 37d40d8a0bb546b5a507269e3218e9f7
+                  expression: 'last(/MegaRAID by SNMP/pdState[{#PD_ID}])=17'
+                  name: 'Failed physical raid drive {#SNMPVALUE} state'
+                  priority: HIGH
+                -
+                  uuid: 1c98f4abd39f4c0f8eb8abe1e657b3ea
+                  expression: 'last(/MegaRAID by SNMP/pdState[{#PD_ID}])=20'
+                  name: 'Rebuilding state for physical raid drive {#SNMPVALUE}'
+                  priority: WARNING
+                -
+                  uuid: cfb17f977b3f46dfa3ef8d77fa37efa0
+                  expression: 'last(/MegaRAID by SNMP/pdState[{#PD_ID}])=1'
+                  name: 'Unconfigured Bad state for physical raid {#SNMPVALUE}'
+                  priority: HIGH
+            -
+              uuid: 85208a0e77e24a5498212f163a132021
+              name: 'Physical raid drive temperature {#PD_ID}'
+              type: SNMP_AGENT
+              snmp_oid: 'LSI-MegaRAID-SAS-MIB::pdTemperature.{#SNMPINDEX}'
+              key: 'pdTemperature[{#PD_ID}]'
+              delay: '60'
+              units: °C
+              description: 'Physical Drive temperature in Celsius'
+              tags:
+                -
+                  tag: 'Physical raid drive'
+                  value: '{#PD_ID}'
+              trigger_prototypes:
+                -
+                  uuid: c8b389cd3dc94fe4982f41ae3f4bea8c
+                  expression: 'last(/MegaRAID by SNMP/pdTemperature[{#PD_ID}])>50'
+                  recovery_mode: RECOVERY_EXPRESSION
+                  recovery_expression: 'last(/MegaRAID by SNMP/pdTemperature[{#PD_ID}])<47'
+                  name: 'Physical raid drive {#SNMPVALUE} temperature too high'
+                  priority: HIGH
+            -
+              uuid: 7cbd7877921b4c62993631d7f5213153
+              name: 'Physical raid drive predictive fail count {#PD_ID}'
+              type: SNMP_AGENT
+              snmp_oid: 'LSI-MegaRAID-SAS-MIB::predFailCount.{#SNMPINDEX}'
+              key: 'predFailCount[{#PD_ID}]'
+              delay: '60'
+              description: 'Predictive fail count of the device'
+              tags:
+                -
+                  tag: 'Physical raid drive'
+                  value: '{#PD_ID}'
+          graph_prototypes:
+            -
+              uuid: def97b1560d04fc49b736ec955293c6b
+              name: 'MegaRAID Physical Device {#SNMPVALUE} Temperature'
+              graph_items:
+                -
+                  color: 0000CC
+                  item:
+                    host: 'MegaRAID by SNMP'
+                    key: 'pdTemperature[{#PD_ID}]'
+        -
+          uuid: b24c2f29ba1247e29a922066f9fcd05f
+          name: 'MegaRAID Virtual drive discovery'
+          type: SNMP_AGENT
+          snmp_oid: 'discovery[{#VD_ID},LSI-MegaRAID-SAS-MIB::virtualDevID,{#VD_NAME},LSI-MegaRAID-SAS-MIB::name]'
+          key: virtualDevID
+          item_prototypes:
+            -
+              uuid: 64c6eb22507b4e928d6552b5f10bd9dc
+              name: 'Virtual drive operation {#VD_ID} [{#VD_NAME}]'
+              type: SNMP_AGENT
+              snmp_oid: 'LSI-MegaRAID-SAS-MIB::vdOperationProgress.{#SNMPINDEX}'
+              key: 'vdOperation[{#VD_ID}]'
+              trends: '0'
+              value_type: CHAR
+              tags:
+                -
+                  tag: 'Virtual raid drive'
+                  value: '{#VD_ID}'
+            -
+              uuid: 489ecf9de00e4faf8368def4688f53bf
+              name: 'Virtual drive size {#VD_ID} [{#VD_NAME}]'
+              type: SNMP_AGENT
+              snmp_oid: 'LSI-MegaRAID-SAS-MIB::size.{#SNMPINDEX}'
+              key: 'vdSize[{#VD_ID}]'
+              trends: '0'
+              units: B
+              tags:
+                -
+                  tag: 'Virtual raid drive'
+                  value: '{#VD_ID}'
+            -
+              uuid: 87a873e5a1bb4bc89ddbb56b0fc4f399
+              name: 'Virtual drive state {#VD_ID} [{#VD_NAME}]'
+              type: SNMP_AGENT
+              snmp_oid: 'LSI-MegaRAID-SAS-MIB::state.{#SNMPINDEX}'
+              key: 'vdState[{#VD_ID}]'
+              trends: '0'
+              valuemap:
+                name: 'Virtual drive state'
+              tags:
+                -
+                  tag: 'Virtual raid drive'
+                  value: '{#VD_ID}'
+              trigger_prototypes:
+                -
+                  uuid: 2f30ca4ae3504ebc8a591a06da0cfea7
+                  expression: 'last(/MegaRAID by SNMP/vdState[{#VD_ID}])=1 or last(/MegaRAID by SNMP/vdState[{#VD_ID}])=2'
+                  recovery_mode: RECOVERY_EXPRESSION
+                  recovery_expression: 'last(/MegaRAID by SNMP/vdState[{#VD_ID}])=3'
+                  name: 'Virtual raid drive state is degraded'
+                  priority: HIGH
+          graph_prototypes:
+            -
+              uuid: 3a14c3da12174307af4c31b9d0f3ee3a
+              name: 'Virtual drive state {#VD_ID} [{#VD_NAME}]'
+              graph_items:
+                -
+                  color: 1A7C11
+                  calc_fnc: ALL
+                  item:
+                    host: 'MegaRAID by SNMP'
+                    key: 'vdState[{#VD_ID}]'
+      macros:
+        -
+          macro: '{$SNMP.TIMEOUT}'
+          value: 5m
+      valuemaps:
+        -
+          uuid: f1cc0a5a7c95474aa2e2e1d59c771c53
+          name: 'Physical drive state'
+          mappings:
+            -
+              value: '0'
+              newvalue: unconfigured-good
+            -
+              value: '1'
+              newvalue: unconfigured-bad
+            -
+              value: '2'
+              newvalue: hot-spare
+            -
+              value: '16'
+              newvalue: offline
+            -
+              value: '17'
+              newvalue: failed
+            -
+              value: '20'
+              newvalue: rebuild
+            -
+              value: '24'
+              newvalue: online
+            -
+              value: '32'
+              newvalue: copyback
+            -
+              value: '64'
+              newvalue: system
+            -
+              value: '128'
+              newvalue: UNCONFIGURED-SHIELDED
+            -
+              value: '130'
+              newvalue: HOTSPARE-SHIELDED
+            -
+              value: '144'
+              newvalue: CONFIGURED-SHIELDED
+        -
+          uuid: 71912029013a4ef28f859ff4820f5faf
+          name: 'Virtual drive state'
+          mappings:
+            -
+              value: '0'
+              newvalue: offline
+            -
+              value: '1'
+              newvalue: partialy-degraded
+            -
+              value: '2'
+              newvalue: degraded
+            -
+              value: '3'
+              newvalue: optimal
