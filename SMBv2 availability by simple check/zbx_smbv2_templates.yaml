@@ -6,18 +6,18 @@ zabbix_export:
       name: Templates
   templates:
     -
-      uuid: ce0bcd2824e1467ea5616f3b98be0d66
-      template: 'RDP availability'
-      name: 'RDP availability'
+      uuid: ed56bba8e1194b299ae8171d5778d2e1
+      template: 'SMBv2 availability'
+      name: 'SMBv2 availability'
       groups:
         -
           name: Templates
       items:
         -
-          uuid: 265865314d3345faa8d0f69d35e75614
-          name: 'RDP availability'
+          uuid: d238b6127bf44fb58db97213a5cf25c8
+          name: 'SMBv2 availability'
           type: SIMPLE
-          key: 'net.tcp.service[tcp,,3389]'
+          key: 'net.tcp.service[tcp,,445]'
           trends: '0'
           tags:
             -
@@ -25,9 +25,9 @@ zabbix_export:
               value: health
           triggers:
             -
-              uuid: 1bbd3329cbaa47649fbac016f1204e66
-              expression: 'max(/RDP availability/net.tcp.service[tcp,,3389],{$RDP.TIMEOUT})=0'
-              name: 'RDP unavilable'
+              uuid: b003bacfcbb5445eb30832d30fe2640f
+              expression: 'max(/SMBv2 availability/net.tcp.service[tcp,,445],{$SMB.TIMEOUT})=0'
+              name: 'SMBv2 unavailable'
               priority: WARNING
       tags:
         -
@@ -35,16 +35,16 @@ zabbix_export:
           value: health
       macros:
         -
-          macro: '{$RDP.TIMEOUT}'
+          macro: '{$SMB.TIMEOUT}'
           value: 5m
   graphs:
     -
-      uuid: 20b95daff7584cf19bbe866b13211094
-      name: 'RDP availability'
+      uuid: d8490cd3ab0a447eaf647b7c6d784273
+      name: 'SMBv2 availability'
       graph_items:
         -
           color: 1A7C11
           calc_fnc: ALL
           item:
-            host: 'RDP availability'
-            key: 'net.tcp.service[tcp,,3389]'
+            host: 'SMBv2 availability'
+            key: 'net.tcp.service[tcp,,445]'
