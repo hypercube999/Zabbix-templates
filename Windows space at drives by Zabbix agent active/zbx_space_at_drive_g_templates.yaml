@@ -32,9 +32,9 @@ zabbix_export:
           triggers:
             -
               uuid: 4cd8c89d6b684e6b94efbeb78b5df5d6
-              expression: 'last(/Windows space at drive G by Zabbix agent active/drive.g.available_space)<{$MIN_FREE_SPACE}'
+              expression: 'last(/Windows space at drive G by Zabbix agent active/drive.g.available_space)<{$DRIVE_G_MIN_FREE_SPACE}'
               recovery_mode: RECOVERY_EXPRESSION
-              recovery_expression: 'last(/Windows space at drive G by Zabbix agent active/drive.g.available_space)>{$MIN_FREE_SPACE_RECOVERY}'
+              recovery_expression: 'last(/Windows space at drive G by Zabbix agent active/drive.g.available_space)>{$DRIVE_G_MIN_FREE_SPACE_RECOVERY}'
               name: 'Lack of free space at drive G:'
               priority: WARNING
         -
@@ -69,10 +69,10 @@ zabbix_export:
               value: G
       macros:
         -
-          macro: '{$MIN_FREE_SPACE}'
+          macro: '{$DRIVE_G_MIN_FREE_SPACE}'
           value: 20G
         -
-          macro: '{$MIN_FREE_SPACE_RECOVERY}'
+          macro: '{$DRIVE_G_MIN_FREE_SPACE_RECOVERY}'
           value: 25G
   graphs:
     -
