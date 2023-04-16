@@ -1,0 +1,426 @@
+zabbix_export:
+  version: '6.4'
+  template_groups:
+    -
+      uuid: a571c0d144b14fd4a87a9d9b2aa9fcd6
+      name: Templates/Applications
+  templates:
+    -
+      uuid: 7091d72f78304cc4aefd59aaf586ae5b
+      template: 'Proxmox VE SMART by HTTP'
+      name: 'Proxmox VE SMART by HTTP'
+      groups:
+        -
+          name: Templates/Applications
+      items:
+        -
+          uuid: 2f6deef99b5947f5b1350cbdacf3b180
+          name: 'Proxmox: node disks'
+          type: HTTP_AGENT
+          key: proxmox.node.disks
+          history: '0'
+          trends: '0'
+          value_type: TEXT
+          description: 'Raw server data about installed disks'
+          preprocessing:
+            -
+              type: JSONPATH
+              parameters:
+                - $.data
+          url: 'https://{HOST.CONN}:{$PVE.URL.PORT}/api2/json/nodes/{$PVE.NODE.ID}/disks/list'
+          query_fields:
+            -
+              name: include-partitions
+              value: '0'
+            -
+              name: skipsmart
+              value: '0'
+          headers:
+            -
+              name: Authorization
+              value: 'PVEAPIToken={$PVE.TOKEN.ID}={$PVE.TOKEN.SECRET}'
+          tags:
+            -
+              tag: component
+              value: raw
+      discovery_rules:
+        -
+          uuid: 6836c345363a411a8d937975b933e0c3
+          name: 'Proxmox: node disks discovery'
+          type: DEPENDENT
+          key: proxmox.node.disks.discovey
+          delay: '0'
+          description: 'Discovery of node''s disks'
+          item_prototypes:
+            -
+              uuid: a7df2e7f88a5417a90fe4b7d334955a6
+              name: 'Proxmox: disk [{#DEVPATH}] model'
+              type: DEPENDENT
+              key: 'proxmox.disk.model[{#DEVPATH}]'
+              delay: '0'
+              history: 7d
+              trends: '0'
+              value_type: TEXT
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$[?(@.devpath == ''{#DEVPATH}'')].model.first()'
+              master_item:
+                key: proxmox.node.disks
+              tags:
+                -
+                  tag: component
+                  value: attribute
+                -
+                  tag: component
+                  value: storage
+                -
+                  tag: diskname
+                  value: '{#DEVPATH}'
+            -
+              uuid: 0b7cc95cbf6c4fb79d1e622f9a2f1b55
+              name: 'Proxmox: disk [{#DEVPATH}] power on hours'
+              type: DEPENDENT
+              key: 'proxmox.disk.poweronhours[{#DEVPATH}]'
+              delay: '0'
+              history: 7d
+              trends: '0'
+              units: h
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - $.attributes
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$[?(@.name == ''Power_On_Hours'')].raw.first()'
+              master_item:
+                key: 'proxmox.disk.smart[{#DEVPATH}]'
+              tags:
+                -
+                  tag: component
+                  value: attribute
+                -
+                  tag: component
+                  value: storage
+                -
+                  tag: diskname
+                  value: '{#DEVPATH}'
+            -
+              uuid: d6c8f19e15e5428a9ab84367af75d034
+              name: 'Proxmox: disk [{#DEVPATH}] relocated sectors count'
+              type: DEPENDENT
+              key: 'proxmox.disk.relocatedsectorscount[{#DEVPATH}]'
+              delay: '0'
+              history: 7d
+              trends: '0'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - $.attributes
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$[?(@.name == ''Reallocated_Sector_Ct'')].raw.first()'
+              master_item:
+                key: 'proxmox.disk.smart[{#DEVPATH}]'
+              tags:
+                -
+                  tag: component
+                  value: attribute
+                -
+                  tag: component
+                  value: storage
+                -
+                  tag: diskname
+                  value: '{#DEVPATH}'
+            -
+              uuid: cd87b53d89194e21a551cc7e03805111
+              name: 'Proxmox: disk [{#DEVPATH}] rpm'
+              type: DEPENDENT
+              key: 'proxmox.disk.rpm[{#DEVPATH}]'
+              delay: '0'
+              history: 7d
+              trends: '0'
+              units: rpm
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$[?(@.devpath == ''{#DEVPATH}'')].rpm.first()'
+              master_item:
+                key: proxmox.node.disks
+              tags:
+                -
+                  tag: component
+                  value: attribute
+                -
+                  tag: component
+                  value: storage
+                -
+                  tag: diskname
+                  value: '{#DEVPATH}'
+            -
+              uuid: f6d850d82cb44d959ada5c5afbd04eee
+              name: 'Proxmox: disk [{#DEVPATH}] serial'
+              type: DEPENDENT
+              key: 'proxmox.disk.serial[{#DEVPATH}]'
+              delay: '0'
+              history: 7d
+              trends: '0'
+              value_type: TEXT
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$[?(@.devpath == ''{#DEVPATH}'')].serial.first()'
+              master_item:
+                key: proxmox.node.disks
+              tags:
+                -
+                  tag: component
+                  value: attribute
+                -
+                  tag: component
+                  value: storage
+                -
+                  tag: diskname
+                  value: '{#DEVPATH}'
+            -
+              uuid: 9b7ba3498f98460c8bd50e5cbcaaf4cd
+              name: 'Proxmox: disk [{#DEVPATH}] size'
+              type: DEPENDENT
+              key: 'proxmox.disk.size[{#DEVPATH}]'
+              delay: '0'
+              history: 7d
+              trends: '0'
+              units: B
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$[?(@.devpath == ''{#DEVPATH}'')].size.first()'
+              master_item:
+                key: proxmox.node.disks
+              tags:
+                -
+                  tag: component
+                  value: attribute
+                -
+                  tag: component
+                  value: storage
+                -
+                  tag: diskname
+                  value: '{#DEVPATH}'
+            -
+              uuid: dcbf62a51be342e78cd3965600012647
+              name: 'Proxmox: disk [{#DEVPATH}] SMART status'
+              type: DEPENDENT
+              key: 'proxmox.disk.smartstatus[{#DEVPATH}]'
+              delay: '0'
+              history: 7d
+              trends: '0'
+              value_type: TEXT
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - $.health
+              master_item:
+                key: 'proxmox.disk.smart[{#DEVPATH}]'
+              tags:
+                -
+                  tag: component
+                  value: attribute
+                -
+                  tag: component
+                  value: storage
+                -
+                  tag: diskname
+                  value: '{#DEVPATH}'
+              trigger_prototypes:
+                -
+                  uuid: d43697a8b3cf47a2be1edfd1ac4519fe
+                  expression: 'last(/Proxmox VE SMART by HTTP/proxmox.disk.smartstatus[{#DEVPATH}])<>"PASSED"'
+                  name: 'SMART [{#DEVPATH}]: Disk self-test is not passed'
+                  priority: HIGH
+            -
+              uuid: a5a23711623446c0a9e80f7e6e1d52f6
+              name: 'Proxmox: disk [{#DEVPATH}] SMART'
+              type: HTTP_AGENT
+              key: 'proxmox.disk.smart[{#DEVPATH}]'
+              history: '0'
+              trends: '0'
+              value_type: TEXT
+              description: 'Disk SMART attributes as raw server response'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - $.data
+              url: 'https://{HOST.CONN}:{$PVE.URL.PORT}/api2/json/nodes/{$PVE.NODE.ID}/disks/smart'
+              query_fields:
+                -
+                  name: disk
+                  value: '{#DEVPATH}'
+                -
+                  name: healthonly
+                  value: '0'
+              headers:
+                -
+                  name: Authorization
+                  value: 'PVEAPIToken={$PVE.TOKEN.ID}={$PVE.TOKEN.SECRET}'
+              tags:
+                -
+                  tag: component
+                  value: raw
+            -
+              uuid: 0631efe4a9b44c5daaeb8ad843f38111
+              name: 'Proxmox: disk [{#DEVPATH}] temperature'
+              type: DEPENDENT
+              key: 'proxmox.disk.temperature[{#DEVPATH}]'
+              delay: '0'
+              history: 7d
+              trends: '0'
+              units: °C
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - $.attributes
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$[?(@.name == ''Airflow_Temperature_Cel'')].raw.first()'
+              master_item:
+                key: 'proxmox.disk.smart[{#DEVPATH}]'
+              tags:
+                -
+                  tag: component
+                  value: attribute
+                -
+                  tag: component
+                  value: storage
+                -
+                  tag: diskname
+                  value: '{#DEVPATH}'
+              trigger_prototypes:
+                -
+                  uuid: 49b673a116124f9f9d0c901e9bb27999
+                  expression: 'avg(/Proxmox VE SMART by HTTP/proxmox.disk.temperature[{#DEVPATH}],5m)>={$SMART.TEMPERATURE.MAX.CRIT}'
+                  name: 'SMART [{#DEVPATH}]: Average disk temperature is critical'
+                  event_name: 'SMART [{#DEVPATH}]: Average disk temperature is critical (over {$SMART.TEMPERATURE.MAX.CRIT}°C for 5m)'
+                  priority: AVERAGE
+                -
+                  uuid: 82b1971279f04d679bbbac5648a941e8
+                  expression: 'avg(/Proxmox VE SMART by HTTP/proxmox.disk.temperature[{#DEVPATH}],5m)>={$SMART.TEMPERATURE.MAX.WARN}'
+                  name: 'SMART [{#DEVPATH}]: Average disk temperature is too high'
+                  event_name: 'SMART [{#DEVPATH}]: Average disk temperature is too high (over {$SMART.TEMPERATURE.MAX.WARN}°C for 5m)'
+                  priority: WARNING
+                  dependencies:
+                    -
+                      name: 'SMART [{#DEVPATH}]: Average disk temperature is critical'
+                      expression: 'avg(/Proxmox VE SMART by HTTP/proxmox.disk.temperature[{#DEVPATH}],5m)>={$SMART.TEMPERATURE.MAX.CRIT}'
+            -
+              uuid: da0816304fe94fac8f8259299f045d03
+              name: 'Proxmox: disk [{#DEVPATH}] type'
+              type: DEPENDENT
+              key: 'proxmox.disk.type[{#DEVPATH}]'
+              delay: '0'
+              history: 7d
+              trends: '0'
+              value_type: TEXT
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$[?(@.devpath == ''{#DEVPATH}'')].type.first()'
+              master_item:
+                key: proxmox.node.disks
+              tags:
+                -
+                  tag: component
+                  value: attribute
+                -
+                  tag: component
+                  value: storage
+                -
+                  tag: diskname
+                  value: '{#DEVPATH}'
+            -
+              uuid: 1f89a962c36345329c233593fdfc303a
+              name: 'Proxmox: disk [{#DEVPATH}] uncorrected sectors count'
+              type: DEPENDENT
+              key: 'proxmox.disk.uncorrectedsectorscount[{#DEVPATH}]'
+              delay: '0'
+              history: 7d
+              trends: '0'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - $.attributes
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$[?(@.name == ''Reported_Uncorrect'')].raw.first()'
+              master_item:
+                key: 'proxmox.disk.smart[{#DEVPATH}]'
+              tags:
+                -
+                  tag: component
+                  value: attribute
+                -
+                  tag: component
+                  value: storage
+                -
+                  tag: diskname
+                  value: '{#DEVPATH}'
+          trigger_prototypes:
+            -
+              uuid: 5b6ecc89a9a34f1c8de872ad0b38a765
+              expression: 'last(/Proxmox VE SMART by HTTP/proxmox.disk.relocatedsectorscount[{#DEVPATH}])<>0 or last(/Proxmox VE SMART by HTTP/proxmox.disk.uncorrectedsectorscount[{#DEVPATH}])<>0'
+              name: 'SMART [{#DEVPATH}]: Error log contains records'
+              priority: HIGH
+              description: 'The device error log contains records of errors.'
+          master_item:
+            key: proxmox.node.disks
+          lld_macro_paths:
+            -
+              lld_macro: '{#DEVPATH}'
+              path: $.devpath
+      tags:
+        -
+          tag: class
+          value: software
+        -
+          tag: target
+          value: proxmox
+      macros:
+        -
+          macro: '{$PVE.NODE.ID}'
+          value: PVE
+          description: 'Node ID (case sensitive)'
+        -
+          macro: '{$PVE.TOKEN.ID}'
+          value: USER@REALM!TOKENID
+          description: 'API tokens allow stateless access to most parts of the REST API by another system, software or API client.'
+        -
+          macro: '{$PVE.TOKEN.SECRET}'
+          value: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+          description: 'Secret key.'
+        -
+          macro: '{$PVE.URL.PORT}'
+          value: '8006'
+          description: 'The API uses the HTTPS protocol and the server listens to port 8006 by default.'
+        -
+          macro: '{$SMART.TEMPERATURE.MAX.CRIT}'
+          value: '65'
+          description: 'This macro is used for trigger expression. It can be overridden on the host or linked on the template level.'
+        -
+          macro: '{$SMART.TEMPERATURE.MAX.WARN}'
+          value: '50'
+          description: 'This macro is used for trigger expression. It can be overridden on the host or linked on the template level.'
