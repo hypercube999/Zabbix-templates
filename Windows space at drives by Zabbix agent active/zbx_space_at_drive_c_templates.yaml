@@ -67,6 +67,13 @@ zabbix_export:
             -
               tag: filesystem
               value: C
+      tags:
+        -
+          tag: class
+          value: storage
+        -
+          tag: filesystem
+          value: c
       macros:
         -
           macro: '{$DRIVE_C_MIN_FREE_SPACE}'
