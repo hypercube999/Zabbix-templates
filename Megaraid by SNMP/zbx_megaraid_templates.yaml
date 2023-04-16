@@ -46,6 +46,10 @@ zabbix_export:
               history: 30d
               units: °C
               description: 'temperature of controller in Celsius'
+              tags:
+                -
+                  tag: component
+                  value: temperature
             -
               uuid: 89daa94c59684f18881216490fc73beb
               name: 'Raid On Chip temperature on adapter {#SNMPVALUE}'
@@ -55,6 +59,10 @@ zabbix_export:
               history: 30d
               units: °C
               description: 'temperature of RAID On Chip in Celsius'
+              tags:
+                -
+                  tag: component
+                  value: temperature
               trigger_prototypes:
                 -
                   uuid: a981f35ffcbf4ec3915cc859ca012ec3
@@ -100,11 +108,13 @@ zabbix_export:
               type: SNMP_AGENT
               snmp_oid: 'LSI-MegaRAID-SAS-MIB::connectedAdapterPort.{#SNMPINDEX}'
               key: 'connectedAdapterPort[{#PD_ID}]'
-              delay: 5m
               trends: '0'
               value_type: TEXT
               description: 'Adapter port(s) to which the device is connected.'
               tags:
+                -
+                  tag: component
+                  value: storage
                 -
                   tag: 'Physical raid drive'
                   value: '{#PD_ID}'
@@ -114,9 +124,11 @@ zabbix_export:
               type: SNMP_AGENT
               snmp_oid: 'LSI-MegaRAID-SAS-MIB::mediaErrCount.{#SNMPINDEX}'
               key: 'mediaErrCount[{#PD_ID}]'
-              delay: 5m
               description: 'Error count of the device'
               tags:
+                -
+                  tag: component
+                  value: storage
                 -
                   tag: 'Physical raid drive'
                   value: '{#PD_ID}'
@@ -126,11 +138,13 @@ zabbix_export:
               type: SNMP_AGENT
               snmp_oid: 'LSI-MegaRAID-SAS-MIB::operationProgress.{#SNMPINDEX}'
               key: 'operationProgress[{#PD_ID}]'
-              delay: 5m
               trends: '0'
               value_type: TEXT
               description: 'Operation progress in %. e.g. Rebuild progress is 10%'
               tags:
+                -
+                  tag: component
+                  value: storage
                 -
                   tag: 'Physical raid drive'
                   value: '{#PD_ID}'
@@ -140,9 +154,11 @@ zabbix_export:
               type: SNMP_AGENT
               snmp_oid: 'LSI-MegaRAID-SAS-MIB::otherErrCount.{#SNMPINDEX}'
               key: 'otherErrCount[{#PD_ID}]'
-              delay: 5m
               description: 'Error count of the device'
               tags:
+                -
+                  tag: component
+                  value: storage
                 -
                   tag: 'Physical raid drive'
                   value: '{#PD_ID}'
@@ -152,10 +168,12 @@ zabbix_export:
               type: SNMP_AGENT
               snmp_oid: 'LSI-MegaRAID-SAS-MIB::pdProductID.{#SNMPINDEX}'
               key: 'pdProductID[{#SNMPVALUE}]'
-              delay: 5m
               trends: '0'
               value_type: CHAR
               tags:
+                -
+                  tag: component
+                  value: storage
                 -
                   tag: 'Physical raid drive'
                   value: '{#PD_ID}'
@@ -165,10 +183,12 @@ zabbix_export:
               type: SNMP_AGENT
               snmp_oid: 'LSI-MegaRAID-SAS-MIB::pdSerialNumber.{#SNMPINDEX}'
               key: 'pdSerialNumber[{#PD_ID}]'
-              delay: 5m
               trends: '0'
               value_type: CHAR
               tags:
+                -
+                  tag: component
+                  value: storage
                 -
                   tag: 'Physical raid drive'
                   value: '{#PD_ID}'
@@ -178,13 +198,15 @@ zabbix_export:
               type: SNMP_AGENT
               snmp_oid: 'LSI-MegaRAID-SAS-MIB::pdState.{#SNMPINDEX}'
               key: 'pdState[{#PD_ID}]'
-              delay: 5m
               description: |
                 Firmware's interpretation of drive state.
                 Values:unconfigured-good(0),unconfigured-bad(1),hot-spare(2),offline(16),failed(17),rebuild(20),online(24),copyback(32),system(64),UNCONFIGURED-SHIELDED(128),HOTSPARE-SHIELDED(130),CONFIGURED-SHIELDED(144)
               valuemap:
                 name: 'Physical drive state'
               tags:
+                -
+                  tag: component
+                  value: storage
                 -
                   tag: 'Physical raid drive'
                   value: '{#PD_ID}'
@@ -214,6 +236,9 @@ zabbix_export:
               description: 'Physical Drive temperature in Celsius'
               tags:
                 -
+                  tag: component
+                  value: temperature
+                -
                   tag: 'Physical raid drive'
                   value: '{#PD_ID}'
               trigger_prototypes:
@@ -230,9 +255,11 @@ zabbix_export:
               type: SNMP_AGENT
               snmp_oid: 'LSI-MegaRAID-SAS-MIB::predFailCount.{#SNMPINDEX}'
               key: 'predFailCount[{#PD_ID}]'
-              delay: 5m
               description: 'Predictive fail count of the device'
               tags:
+                -
+                  tag: component
+                  value: storage
                 -
                   tag: 'Physical raid drive'
                   value: '{#PD_ID}'
@@ -260,23 +287,12 @@ zabbix_export:
               type: SNMP_AGENT
               snmp_oid: 'LSI-MegaRAID-SAS-MIB::vdOperationProgress.{#SNMPINDEX}'
               key: 'vdOperation[{#VD_ID}]'
-              delay: 5m
               trends: '0'
               value_type: CHAR
               tags:
                 -
-                  tag: 'Virtual raid drive'
-                  value: '{#VD_ID}'
-            -
-              uuid: 489ecf9de00e4faf8368def4688f53bf
-              name: 'Virtual drive size {#VD_ID} [{#VD_NAME}]'
-              type: SNMP_AGENT
-              snmp_oid: 'LSI-MegaRAID-SAS-MIB::size.{#SNMPINDEX}'
-              key: 'vdSize[{#VD_ID}]'
-              delay: 5m
-              trends: '0'
-              units: B
-              tags:
+                  tag: component
+                  value: storage
                 -
                   tag: 'Virtual raid drive'
                   value: '{#VD_ID}'
@@ -286,11 +302,13 @@ zabbix_export:
               type: SNMP_AGENT
               snmp_oid: 'LSI-MegaRAID-SAS-MIB::state.{#SNMPINDEX}'
               key: 'vdState[{#VD_ID}]'
-              delay: 5m
               trends: '0'
               valuemap:
                 name: 'Virtual drive state'
               tags:
+                -
+                  tag: component
+                  value: storage
                 -
                   tag: 'Virtual raid drive'
                   value: '{#VD_ID}'
