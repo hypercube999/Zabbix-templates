@@ -1693,6 +1693,7 @@ zabbix_export:
               name: 'TrueNAS: Interface [{#IFNAME}({#IFALIAS})]: High inbound bandwidth usage'
               event_name: 'TrueNAS: Interface [{#IFNAME}({#IFALIAS})]: High inbound bandwidth usage ( > {$IF.UTIL.MAX:"{#IFNAME}"}% )'
               opdata: 'In: {ITEM.LASTVALUE1}, speed: {ITEM.LASTVALUE2}'
+              status: DISABLED
               priority: WARNING
               description: 'The network interface utilization is close to its estimated maximum bandwidth.'
               dependencies:
@@ -1713,6 +1714,7 @@ zabbix_export:
               name: 'TrueNAS: Interface [{#IFNAME}({#IFALIAS})]: High outbound bandwidth usage'
               event_name: 'TrueNAS: Interface [{#IFNAME}({#IFALIAS})]: High outbound bandwidth usage ( > {$IF.UTIL.MAX:"{#IFNAME}"}% )'
               opdata: 'Out: {ITEM.LASTVALUE1}, speed: {ITEM.LASTVALUE2}'
+              status: DISABLED
               priority: WARNING
               description: 'The network interface utilization is close to its estimated maximum bandwidth.'
               dependencies:
