@@ -16,12 +16,11 @@ zabbix_export:
         -
           uuid: 706fe894b0354b968fa5b559e622e194
           name: 'D: Available space'
-          type: CALCULATED
-          key: drive.d.available_space
+          type: ZABBIX_ACTIVE
+          key: 'vfs.fs.size[D:,free]'
           delay: 5m
           history: 7d
           units: B
-          params: 'last(//vfs.fs.size[D:,total])-last(//vfs.fs.size[D:,used])'
           tags:
             -
               tag: component
@@ -32,9 +31,9 @@ zabbix_export:
           triggers:
             -
               uuid: 4e6623f1ddce43ed8a394508d5329d66
-              expression: 'last(/Windows space at drive D by Zabbix agent active/drive.d.available_space)<{$DRIVE_D_MIN_FREE_SPACE}'
+              expression: 'last(/Windows space at drive D by Zabbix agent active/vfs.fs.size[D:,free])<{$DRIVE_D_MIN_FREE_SPACE}'
               recovery_mode: RECOVERY_EXPRESSION
-              recovery_expression: 'last(/Windows space at drive D by Zabbix agent active/drive.d.available_space)>{$DRIVE_D_MIN_FREE_SPACE_RECOVERY}'
+              recovery_expression: 'last(/Windows space at drive D by Zabbix agent active/vfs.fs.size[D:,free])>{$DRIVE_D_MIN_FREE_SPACE_RECOVERY}'
               name: 'Lack of free space at drive D:'
               priority: WARNING
         -
@@ -96,7 +95,7 @@ zabbix_export:
           calc_fnc: ALL
           item:
             host: 'Windows space at drive D by Zabbix agent active'
-            key: drive.d.available_space
+            key: 'vfs.fs.size[D:,free]'
         -
           sortorder: '1'
           color: '274482'
