@@ -1,0 +1,495 @@
+zabbix_export:
+  version: '6.4'
+  template_groups:
+    -
+      uuid: a571c0d144b14fd4a87a9d9b2aa9fcd6
+      name: Templates/Applications
+  templates:
+    -
+      uuid: c874aabed4c0401dbe9dd589edc43feb
+      template: 'Proxmox VE ZFS by HTTP'
+      name: 'Proxmox VE ZFS by HTTP'
+      groups:
+        -
+          name: Templates/Applications
+      items:
+        -
+          uuid: 2e4409b8f11f47f8b465c32db67bade3
+          name: 'Proxmox: Get node ZFS pools'
+          type: HTTP_AGENT
+          key: proxmox.zfs.pools
+          delay: 5m
+          history: '0'
+          trends: '0'
+          value_type: TEXT
+          description: 'ZFS pools list'
+          preprocessing:
+            -
+              type: CHECK_NOT_SUPPORTED
+              parameters:
+                - ''
+              error_handler: CUSTOM_VALUE
+              error_handler_params: 'Error getting data'
+          url: 'https://{HOST.CONN}:{$PVE.URL.PORT}/api2/json/nodes/{$PVE.NODE.ID}/disks/zfs'
+          headers:
+            -
+              name: Authorization
+              value: 'PVEAPIToken={$PVE.TOKEN.ID}={$PVE.TOKEN.SECRET}'
+          tags:
+            -
+              tag: component
+              value: raw
+      discovery_rules:
+        -
+          uuid: a7b77dabe8704fd6b42a6050a0dd1ea0
+          name: 'ZFS pools discovery'
+          type: DEPENDENT
+          key: proxmox.zpool.discovery
+          delay: '0'
+          filter:
+            evaltype: AND
+          item_prototypes:
+            -
+              uuid: 78add9d2ceb44989af63654b7af7376b
+              name: 'Proxmox: ZFS pool [{#ZPOOL.NAME}]: Fragmentation'
+              type: DEPENDENT
+              key: 'proxmox.zpool.fragmentation[{#ZPOOL.NAME}]'
+              delay: '0'
+              history: 7d
+              trends: '0'
+              units: '%'
+              description: 'Zpool fragmentations in %.'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$.data[?(@.name == "{#ZPOOL.NAME}")].frag.first()'
+                -
+                  type: DISCARD_UNCHANGED_HEARTBEAT
+                  parameters:
+                    - 10m
+              master_item:
+                key: proxmox.zfs.pools
+              tags:
+                -
+                  tag: component
+                  value: storage
+                -
+                  tag: zpool
+                  value: '{#ZPOOL.NAME}'
+            -
+              uuid: 2c8b0dc6190b4eb6aac72db7b5a8c437
+              name: 'Proxmox: ZFS pool [{#ZPOOL.NAME}]: Free'
+              type: DEPENDENT
+              key: 'proxmox.zpool.free[{#ZPOOL.NAME}]'
+              delay: '0'
+              history: 7d
+              trends: '0'
+              units: B
+              description: 'Zpool free space in bytes.'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$.data[?(@.name == "{#ZPOOL.NAME}")].free.first()'
+                -
+                  type: DISCARD_UNCHANGED_HEARTBEAT
+                  parameters:
+                    - 10m
+              master_item:
+                key: proxmox.zfs.pools
+              tags:
+                -
+                  tag: component
+                  value: storage
+                -
+                  tag: zpool
+                  value: '{#ZPOOL.NAME}'
+            -
+              uuid: 8d384484a51e4c6197d3d025647cf606
+              name: 'Proxmox: ZFS pool [{#ZPOOL.NAME}]: Health'
+              type: DEPENDENT
+              key: 'proxmox.zpool.health[{#ZPOOL.NAME}]'
+              delay: '0'
+              history: 7d
+              trends: '0'
+              value_type: CHAR
+              description: 'Zpool health status (ONLINE, FAULTED, DEGRADED, UNAVAILABLE, OFFLINE).'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$.data[?(@.name == "{#ZPOOL.NAME}")].health.first()'
+                -
+                  type: DISCARD_UNCHANGED_HEARTBEAT
+                  parameters:
+                    - 10m
+              master_item:
+                key: proxmox.zfs.pools
+              tags:
+                -
+                  tag: component
+                  value: storage
+                -
+                  tag: zpool
+                  value: '{#ZPOOL.NAME}'
+              trigger_prototypes:
+                -
+                  uuid: 7d76910d55014d15a6241d888b737ce7
+                  expression: 'last(/Proxmox VE ZFS by HTTP/proxmox.zpool.health[{#ZPOOL.NAME}])<>"ONLINE"'
+                  name: 'ZFS pool health status is not online [{#ZPOOL.NAME}]'
+                  opdata: 'Current health status: {ITEM.LASTVALUE}'
+                  priority: HIGH
+                  tags:
+                    -
+                      tag: component
+                      value: storage
+                    -
+                      tag: zpool
+                      value: '{#ZPOOL.NAME}'
+            -
+              uuid: cc6d3ca0fb9e423698198f6a856b37c2
+              name: 'Proxmox: ZFS pool [{#ZPOOL.NAME}]: Size'
+              type: DEPENDENT
+              key: 'proxmox.zpool.size[{#ZPOOL.NAME}]'
+              delay: '0'
+              history: 7d
+              trends: '0'
+              units: B
+              description: 'Zpool size in bytes.'
+              preprocessing:
+                -
+                  type: JSONPATH
+                  parameters:
+                    - '$.data[?(@.name == "{#ZPOOL.NAME}")].size.first()'
+                -
+                  type: DISCARD_UNCHANGED_HEARTBEAT
+                  parameters:
+                    - 10m
+              master_item:
+                key: proxmox.zfs.pools
+              tags:
+                -
+                  tag: component
+                  value: storage
+                -
+                  tag: zpool
+                  value: '{#ZPOOL.NAME}'
+            -
+              uuid: f0597b83aec643388535a71c5f95d9d9
+              name: 'Proxmox: ZFS pool [{#ZPOOL.NAME}]: Space usage'
+              type: CALCULATED
+              key: 'proxmox.zpool.usage[{#ZPOOL.NAME}]'
+              history: 7d
+              trends: '0'
+              units: B
+              params: 'last(//proxmox.zpool.size[{#ZPOOL.NAME}]) - last(//proxmox.zpool.free[{#ZPOOL.NAME}])'
+              description: 'Zpool space usage in bytes.'
+              preprocessing:
+                -
+                  type: DISCARD_UNCHANGED_HEARTBEAT
+                  parameters:
+                    - 10m
+              tags:
+                -
+                  tag: component
+                  value: storage
+                -
+                  tag: zpool
+                  value: '{#ZPOOL.NAME}'
+          graph_prototypes:
+            -
+              uuid: f160b0772e2b4a47922351b1f269b34a
+              name: 'Zpool {#ZPOOL.NAME} fragmentation'
+              ymin_type_1: FIXED
+              ymax_type_1: FIXED
+              graph_items:
+                -
+                  color: 1A7C11
+                  calc_fnc: ALL
+                  item:
+                    host: 'Proxmox VE ZFS by HTTP'
+                    key: 'proxmox.zpool.fragmentation[{#ZPOOL.NAME}]'
+            -
+              uuid: 40fcca0394024971b9b9a221ed64beb5
+              name: 'Zpool {#ZPOOL.NAME} space usage'
+              graph_items:
+                -
+                  color: 1A7C11
+                  calc_fnc: ALL
+                  item:
+                    host: 'Proxmox VE ZFS by HTTP'
+                    key: 'proxmox.zpool.usage[{#ZPOOL.NAME}]'
+                -
+                  sortorder: '1'
+                  color: '274482'
+                  calc_fnc: ALL
+                  item:
+                    host: 'Proxmox VE ZFS by HTTP'
+                    key: 'proxmox.zpool.size[{#ZPOOL.NAME}]'
+          master_item:
+            key: proxmox.zfs.pools
+          lld_macro_paths:
+            -
+              lld_macro: '{#ZPOOL.NAME}'
+              path: $.name
+      tags:
+        -
+          tag: class
+          value: software
+        -
+          tag: target
+          value: proxmox
+      macros:
+        -
+          macro: '{$PVE.NODE.ID}'
+          value: PVE1
+          description: 'Node ID (case sinsitive)'
+        -
+          macro: '{$PVE.TOKEN.ID}'
+          value: USER@REALM!TOKENID
+          description: 'API tokens allow stateless access to most parts of the REST API by another system, software or API client.'
+        -
+          macro: '{$PVE.TOKEN.SECRET}'
+          value: xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
+          description: 'Secret key.'
+        -
+          macro: '{$PVE.URL.PORT}'
+          value: '8006'
+          description: 'The API uses the HTTPS protocol and the server listens to port 8006 by default.'
+      valuemaps:
+        -
+          uuid: 709ec3b1a4164079addb47449b3f8db3
+          name: 'HTTP response status code'
+          mappings:
+            -
+              value: '100'
+              newvalue: Continue
+            -
+              value: '101'
+              newvalue: 'Switching Protocols'
+            -
+              value: '102'
+              newvalue: Processing
+            -
+              value: '200'
+              newvalue: OK
+            -
+              value: '201'
+              newvalue: Created
+            -
+              value: '202'
+              newvalue: Accepted
+            -
+              value: '203'
+              newvalue: 'Non-Authoritative Information'
+            -
+              value: '204'
+              newvalue: 'No Content'
+            -
+              value: '205'
+              newvalue: 'Reset Content'
+            -
+              value: '206'
+              newvalue: 'Partial Content'
+            -
+              value: '207'
+              newvalue: Multi-Status
+            -
+              value: '208'
+              newvalue: 'Already Reported'
+            -
+              value: '226'
+              newvalue: 'IM Used'
+            -
+              value: '300'
+              newvalue: 'Multiple Choices'
+            -
+              value: '301'
+              newvalue: 'Moved Permanently'
+            -
+              value: '302'
+              newvalue: Found
+            -
+              value: '303'
+              newvalue: 'See Other'
+            -
+              value: '304'
+              newvalue: 'Not Modified'
+            -
+              value: '305'
+              newvalue: 'Use Proxy'
+            -
+              value: '306'
+              newvalue: 'Switch Proxy'
+            -
+              value: '307'
+              newvalue: 'Temporary Redirect'
+            -
+              value: '308'
+              newvalue: 'Permanent Redirect/Resume Incomplete'
+            -
+              value: '400'
+              newvalue: 'Bad Request'
+            -
+              value: '401'
+              newvalue: Unauthorized
+            -
+              value: '402'
+              newvalue: 'Payment Required'
+            -
+              value: '403'
+              newvalue: Forbidden
+            -
+              value: '404'
+              newvalue: 'Not Found'
+            -
+              value: '405'
+              newvalue: 'Method Not Allowed'
+            -
+              value: '406'
+              newvalue: 'Not Acceptable'
+            -
+              value: '407'
+              newvalue: 'Proxy Authentication Required'
+            -
+              value: '408'
+              newvalue: 'Request Timeout'
+            -
+              value: '409'
+              newvalue: Conflict
+            -
+              value: '410'
+              newvalue: Gone
+            -
+              value: '411'
+              newvalue: 'Length Required'
+            -
+              value: '412'
+              newvalue: 'Precondition Failed'
+            -
+              value: '413'
+              newvalue: 'Payload Too Large'
+            -
+              value: '414'
+              newvalue: 'Request-URI Too Long'
+            -
+              value: '415'
+              newvalue: 'Unsupported Media Type'
+            -
+              value: '416'
+              newvalue: 'Requested Range Not Satisfiable'
+            -
+              value: '417'
+              newvalue: 'Expectation Failed'
+            -
+              value: '418'
+              newvalue: 'I''m a Teapot'
+            -
+              value: '419'
+              newvalue: 'Authentication Timeout'
+            -
+              value: '420'
+              newvalue: 'Method Failure/Enhance Your Calm'
+            -
+              value: '421'
+              newvalue: 'Misdirected Request'
+            -
+              value: '422'
+              newvalue: 'Unprocessable Entity'
+            -
+              value: '423'
+              newvalue: Locked
+            -
+              value: '424'
+              newvalue: 'Failed Dependency'
+            -
+              value: '426'
+              newvalue: 'Upgrade Required'
+            -
+              value: '428'
+              newvalue: 'Precondition Required'
+            -
+              value: '429'
+              newvalue: 'Too Many Requests'
+            -
+              value: '431'
+              newvalue: 'Request Header Fields Too Large'
+            -
+              value: '440'
+              newvalue: 'Login Timeout'
+            -
+              value: '444'
+              newvalue: 'No Response'
+            -
+              value: '449'
+              newvalue: 'Retry With'
+            -
+              value: '450'
+              newvalue: 'Blocked by Windows Parental Controls'
+            -
+              value: '451'
+              newvalue: 'Unavailable for Legal Reasons/Redirect'
+            -
+              value: '494'
+              newvalue: 'Request Header Too Large'
+            -
+              value: '495'
+              newvalue: 'Cert Error'
+            -
+              value: '496'
+              newvalue: 'No Cert'
+            -
+              value: '497'
+              newvalue: 'HTTP to HTTPS'
+            -
+              value: '498'
+              newvalue: 'Token Expired/Invalid'
+            -
+              value: '499'
+              newvalue: 'Client Closed Request/Token Required'
+            -
+              value: '500'
+              newvalue: 'Internal Server Error'
+            -
+              value: '501'
+              newvalue: 'Not Implemented'
+            -
+              value: '502'
+              newvalue: 'Bad Gateway'
+            -
+              value: '503'
+              newvalue: 'Service Unavailable'
+            -
+              value: '504'
+              newvalue: 'Gateway Timeout'
+            -
+              value: '505'
+              newvalue: 'HTTP Version Not Supported'
+            -
+              value: '506'
+              newvalue: 'Variant Also Negotiates'
+            -
+              value: '507'
+              newvalue: 'Insufficient Storage'
+            -
+              value: '508'
+              newvalue: 'Loop Detected'
+            -
+              value: '509'
+              newvalue: 'Bandwidth Limit Exceeded'
+            -
+              value: '510'
+              newvalue: 'Not Extended'
+            -
+              value: '511'
+              newvalue: 'Network Authentication Required'
+            -
+              value: '520'
+              newvalue: 'Unknown Error'
+            -
+              value: '598'
+              newvalue: 'Network Read Timeout Error'
+            -
+              value: '599'
+              newvalue: 'Network Connect Timeout Error'
