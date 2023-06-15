@@ -34,6 +34,10 @@ zabbix_export:
               type: JAVASCRIPT
               parameters:
                 - 'return value.toLowerCase()'
+            -
+              type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 1h
           tags:
             -
               tag: component
@@ -59,6 +63,11 @@ zabbix_export:
           description: |
             Статус службы "Службы удаленных рабочих столов". 
             0 - running, 1 - paused, 2 - start pending, 3 - pause pending, 4 - continue pending, 5 - stop pending, 6 - stopped, 7 - unknown, 255 - no such service
+          preprocessing:
+            -
+              type: DISCARD_UNCHANGED_HEARTBEAT
+              parameters:
+                - 1h
           tags:
             -
               tag: component
