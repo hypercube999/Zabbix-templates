@@ -1,0 +1,76 @@
+zabbix_export:
+  version: '6.4'
+  template_groups:
+    -
+      uuid: a571c0d144b14fd4a87a9d9b2aa9fcd6
+      name: Templates/Applications
+    -
+      uuid: 846977d1dfed4968bc5f8bdb363285bc
+      name: 'Templates/Operating systems'
+  templates:
+    -
+      uuid: 138d92dda4ae40ab85c03b81b926babc
+      template: 'RDPWrap status by Zabbix agent active'
+      name: 'RDPWrap status by Zabbix agent active'
+      groups:
+        -
+          name: Templates/Applications
+        -
+          name: 'Templates/Operating systems'
+      items:
+        -
+          uuid: 2fa808b4e926470ab267dd20dbdc2d24
+          name: 'RDPWrap dll path'
+          type: ZABBIX_ACTIVE
+          key: rdpwrap.dllpath
+          delay: 5m
+          trends: '0'
+          value_type: TEXT
+          description: |
+            Наличие этого пути в параметре реестра HKLM:\SYSTEM\CurrentControlSet\Services\TermService\Parameters говорит об установленном патче на одновременный вход нескольких сессий. Этот способ проверки подсмотрен в самих исходниках проекта RDPWrap.
+            В дополнение к этому необходимо мониторить статут службы TermService.
+          preprocessing:
+            -
+              type: JAVASCRIPT
+              parameters:
+                - 'return value.toLowerCase()'
+          tags:
+            -
+              tag: component
+              value: health
+          triggers:
+            -
+              uuid: 2fbaea68d6ed41fdb080ddcefd987bf0
+              expression: 'right(last(/RDPWrap status by Zabbix agent active/rdpwrap.dllpath),11)<>"rdpwrap.dll"'
+              name: 'RDPWrap.dll is not installed'
+              priority: AVERAGE
+              description: 'RDPWrap.dll - компонент, отвечающий за организацию одновременного доступа по RDP с нескольких учетных записей, не установлен в системе или не прописан в реестре.'
+              tags:
+                -
+                  tag: component
+                  value: health
+        -
+          uuid: be51df2cf732455e9e61dd278eacb1cd
+          name: 'TermService status'
+          type: ZABBIX_ACTIVE
+          key: 'service.info[TermService,state]'
+          delay: 5m
+          trends: '0'
+          description: |
+            Статус службы "Службы удаленных рабочих столов". 
+            0 - running, 1 - paused, 2 - start pending, 3 - pause pending, 4 - continue pending, 5 - stop pending, 6 - stopped, 7 - unknown, 255 - no such service
+          tags:
+            -
+              tag: component
+              value: health
+          triggers:
+            -
+              uuid: 3cae795f6b0e4909be916a262a97336a
+              expression: 'last(/RDPWrap status by Zabbix agent active/service.info[TermService,state],#3)<>0'
+              name: 'TermService is not running'
+              priority: AVERAGE
+              description: 'Служба "Службы удаленных рабочих столов" не запущена'
+              tags:
+                -
+                  tag: component
+                  value: health
