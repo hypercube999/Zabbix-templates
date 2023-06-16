@@ -22,7 +22,7 @@ zabbix_export:
           uuid: 2fa808b4e926470ab267dd20dbdc2d24
           name: 'RDPWrap dll path'
           type: ZABBIX_ACTIVE
-          key: rdpwrap.dllpath
+          key: 'registry.data["HKLM\SYSTEM\CurrentControlSet\services\TermService\Parameters", "ServiceDll"]'
           delay: 5m
           trends: '0'
           value_type: TEXT
@@ -42,10 +42,13 @@ zabbix_export:
             -
               tag: component
               value: health
+            -
+              tag: target
+              value: 'remote desktop'
           triggers:
             -
               uuid: 2fbaea68d6ed41fdb080ddcefd987bf0
-              expression: 'right(last(/RDPWrap status by Zabbix agent active/rdpwrap.dllpath),11)<>"rdpwrap.dll"'
+              expression: 'right(last(/RDPWrap status by Zabbix agent active/registry.data["HKLM\SYSTEM\CurrentControlSet\services\TermService\Parameters", "ServiceDll"]),11)<>"rdpwrap.dll"'
               name: 'RDPWrap.dll is not installed'
               priority: AVERAGE
               description: 'RDPWrap.dll - компонент, отвечающий за организацию одновременного доступа по RDP с нескольких учетных записей, не установлен в системе или не прописан в реестре.'
@@ -72,6 +75,9 @@ zabbix_export:
             -
               tag: component
               value: health
+            -
+              tag: target
+              value: 'remote desktop'
           triggers:
             -
               uuid: 3cae795f6b0e4909be916a262a97336a
