@@ -66,11 +66,6 @@ zabbix_export:
           description: |
             Статус службы "Службы удаленных рабочих столов". 
             0 - running, 1 - paused, 2 - start pending, 3 - pause pending, 4 - continue pending, 5 - stop pending, 6 - stopped, 7 - unknown, 255 - no such service
-          preprocessing:
-            -
-              type: DISCARD_UNCHANGED_HEARTBEAT
-              parameters:
-                - 1h
           tags:
             -
               tag: component
@@ -81,7 +76,7 @@ zabbix_export:
           triggers:
             -
               uuid: 3cae795f6b0e4909be916a262a97336a
-              expression: 'last(/RDPWrap status by Zabbix agent active/service.info[TermService,state],#3)<>0'
+              expression: 'min(/RDPWrap status by Zabbix agent active/service.info[TermService,state],15m)>0'
               name: 'TermService is not running'
               priority: AVERAGE
               description: 'Служба "Службы удаленных рабочих столов" не запущена'
